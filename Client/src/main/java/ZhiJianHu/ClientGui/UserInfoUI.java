@@ -16,6 +16,7 @@ public class UserInfoUI extends JFrame {
     private UserDao ud=new UserDao();
 
     public UserInfoUI(String username) {
+        username=username.replace("(在线)","");
         //通过名字获得用户信息
         User user = ud.getUser(username);
         setTitle("用户信息 - " + username);

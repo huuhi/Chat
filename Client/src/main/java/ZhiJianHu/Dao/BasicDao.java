@@ -27,6 +27,8 @@ public class BasicDao<T> implements Serializable {
             return i;
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
     //查找多个数据
@@ -37,6 +39,8 @@ public class BasicDao<T> implements Serializable {
             return qr.query(con,sql,new BeanListHandler<>(cla),params);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
     //单个数据
@@ -47,6 +51,8 @@ public class BasicDao<T> implements Serializable {
             return qr.query(con,sql,new BeanHandler<>(cla),params);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
     //单个对象
@@ -57,6 +63,8 @@ public class BasicDao<T> implements Serializable {
             return qr.query(con,sql,new ScalarHandler<>(),params);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
 

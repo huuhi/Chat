@@ -23,16 +23,20 @@ public class BasicDao<T> implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(BasicDao.class);
 
     //增删改
-    public int update(String sql,Object... params){
-        Connection con = Utils.con();
-        QueryRunner qr = new QueryRunner();
-        try {
-            int i= qr.update(con,sql,params);
-            return i;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+     public int update(String sql, Object... params) {
+         Connection con = Utils.con();
+         QueryRunner qr = new QueryRunner();
+
+            try {
+                return qr.update(con, sql, params);
+            } catch (SQLException e) {
+                log.error("Database update error: {}", e.getMessage(), e);
+                System.exit(1);
+            }finally {
+                Utils.closeCon(con);
+            }
+            return -1;
         }
-    }
     //查找多个数据
     public List<T> query(String sql,Class<T> cla,Object... params){
         Connection con = Utils.con();
@@ -41,6 +45,8 @@ public class BasicDao<T> implements Serializable {
             return qr.query(con,sql,new BeanListHandler<>(cla),params);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
     //单个数据
@@ -51,6 +57,8 @@ public class BasicDao<T> implements Serializable {
             return qr.query(con,sql,new BeanHandler<>(cla),params);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
     //单个对象
@@ -61,6 +69,8 @@ public class BasicDao<T> implements Serializable {
             return qr.query(con,sql,new ScalarHandler<>(),params);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
     public List<T> query(String sql,Class<T> cla){
@@ -71,6 +81,8 @@ public class BasicDao<T> implements Serializable {
         } catch (SQLException e) {
             log.error("查询出现问题"+e);
             throw new RuntimeException(e);
+        }finally {
+            Utils.closeCon(con);
         }
     }
 

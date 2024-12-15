@@ -18,10 +18,16 @@ public class ServiceThreads {
     }
 
     public static Map<String, ServiceThread> get(){
-        return mp;
+        return new HashMap<>(mp);
     }
     public static ServiceThread getThread(String threadName) {
         return mp.get(threadName);
     }
 
+    public static void removeConnection(String threadName) {
+        mp.remove(threadName);
+    }
+    public static boolean contains(String name){
+        return mp.containsKey(name);
+    }
 }

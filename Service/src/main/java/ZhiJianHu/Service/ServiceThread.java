@@ -1,5 +1,6 @@
 package ZhiJianHu.Service;
 
+import ZhiJianHu.Common.Dao.Message_Dao;
 import ZhiJianHu.Common.Dao.UserDao;
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
@@ -7,11 +8,11 @@ import ZhiJianHu.Common.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -24,42 +25,157 @@ import java.util.Map;
  */
 public class ServiceThread extends Thread{
     private static final Logger log= LoggerFactory.getLogger(ServiceThread.class);
-    private Socket socket;
+    public Socket socket;
     private String name;
-    private boolean exit=false;
+    private static boolean exit=false;
     private UserDao ud=new UserDao();
+    private Message_Dao md=new Message_Dao();
 
     private ObjectInputStream ois;
     private Message mes;
+    private Leave_Mes leave_mes;
 
 
     public ServiceThread(Socket socket,String name) {
         this.socket = socket;
         this.name=name;
+        ServiceGUI.setadd(name);
+        if (leave_mes == null) {
+            leave_mes = new Leave_Mes(name, false);
+        }
+    }
+
+    public static void setExit(boolean exit) {
+        ServiceThread.exit = exit;
     }
 
     @Override
     public void run() {
+
         //初始化
         while (!exit){
+            sendUserList();
+
+            //senduser();
             try {
                 ois=new ObjectInputStream(socket.getInputStream());
                 mes = (Message) ois.readObject();
                 MessageType messageType = mes.getMessageType();
                 switch(messageType) {
-                    case MESSAGE_ALL_MES -> SendAll();
-                    case MESSAGE_PRIVATE_MES -> PrivateMes();
-                    case MESSAGE_SHOW_USER -> senduser();
+                    case MESSAGE_ALL_MES -> SendAll(mes);
+                    case MESSAGE_PRIVATE_MES -> PrivateMes() ;
+                   // case MESSAGE_SHOW_USER -> sendUserList();
                     case MESSAGE_ADD_USER -> adduser();
+                    case MESSAGE_SEND_FILE -> SendFile();
+                    case MESSAGE_PRIVATE_FILE -> SendPrivateFile();
+                    case MESSAGE_EXIT_MES -> EXIT_MES();
+                    case MESSAGE_OPEN_MES -> check();
                 }
 
-            } catch (Exception e) {
+            }catch (EOFException e){
+                log.error("{}下线了",name);
+                throw new RuntimeException();
+            }
+            catch (Exception e) {
+                log.info("{}下线",name);
+                throw new RuntimeException();
+            }
+        }
+        cleanup();
+    }
+    private void check(){
+        //检查消息留言
+        log.info("open设置成功");
+        leave_mes.setOpen(true); // 传入 true 表示打开私聊窗口
+    }
+
+
+    private void cleanup() {
+        ServiceThreads.removeConnection(name);
+        sendUserList(); // 更新用户列表
+
+    }
+
+
+    //强制下线
+    public static void exit(String username){
+        Message mes=new Message();
+        ServiceThread thread = ServiceThreads.getThread(username);
+        mes.setMessageType(MessageType.MESSAGE_EXIT_MES);
+        mes.setReceiver(username);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
+            oos.writeObject(mes);
+            thread.cleanup();
+        } catch (IOException e) {
+            log.error("服务端强制退出错误"+e);
+        }
+    }
+
+    private void EXIT_MES() {
+        String sender = mes.getSender();
+        log.info("客户{}退出软件",sender);
+        ServiceGUI.setexit(sender);
+        cleanup();
+
+    }
+    public static void Service_send_Mes(Message message){
+        //遍历在线用户发送
+        Map<String, ServiceThread> sstm = ServiceThreads.get();
+        for (ServiceThread st:sstm.values()){
+            st.SendAll(message);
+            break;
+        }
+    }
+
+
+    private void SendPrivateFile() {
+        String receiver = mes.getReceiver();
+        ServiceThread thread = ServiceThreads.getThread(receiver);
+        if(thread != null){
+            try{
+                ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
+                oos.writeObject(mes);
+                oos.flush();
+            } catch (IOException e) {
+                log.error("私发文件错误{}",e);
                 throw new RuntimeException(e);
             }
+        }else{
+            md.addmes(mes);
         }
 
 
+    }
 
+
+    private void SendFile() {
+        log.info("进入发送文件方法");
+            //循环给所有人发送
+        List<User> users = ud.getAllUsers();
+        for(User u:users){
+            String name = u.getName();
+            mes.setReceiver(u.getName());
+            if(!name.equals(mes.getSender())){
+                    //得到线程发送
+            ServiceThread thread = ServiceThreads.getThread(u.getName());
+                if(thread==null){
+                    log.debug("添加文件成功");
+                    md.addmes(mes);
+                    continue;
+                }
+                try {
+                    log.info("正在发送文件");
+                    ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
+                    oos.writeObject(mes);
+                    oos.flush();
+                    log.info("发送文件成功");
+                } catch (IOException e) {
+                    log.error("服务端发送文件消息错误"+e);
+                    //throw new RuntimeException(e);
+                }
+                }
+        }
     }
 
     private void adduser() {
@@ -74,58 +190,97 @@ public class ServiceThread extends Thread{
 
     }
 
-    private void senduser() {
-        //发送用户名字，直接获得所有用户
+    /*
+
+     */
+
+    private void sendUserList() {
         List<User> allUsers = ud.getAllUsers();
-        String names="";
-        for (User u:allUsers){
-            names=names+u.getName()+",";
+        StringBuilder names = new StringBuilder();
+
+        // 构建用户列表字符串
+        for (User u : allUsers) {
+            String userName = u.getName();
+            if (ServiceThreads.contains(userName)) {
+                userName += "(在线)";
+            }
+            names.append(userName).append(",");
         }
+        if(!names.isEmpty()){
+            names.deleteCharAt(names.length() - 1);
+        }
+
         Message message = new Message();
-        message.setContent(names);
+        message.setContent(names.toString());
         message.setMessageType(MessageType.MESSAGE_SHOW_USER);
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.writeObject(message);
-            oos.flush();
-        } catch (IOException e) {
-            log.error("获取用户时发生错误"+e);
-            throw new RuntimeException(e);
-        }
 
-
-    }
-
-    private void PrivateMes() {
-    }
-
-    private void SendAll() {
-        //发消息给所有人，返回客户端
-        //遍历集合！
-        Map<String, ServiceThread> sst = ServiceThreads.get();
-        Iterator<String> iterator = sst.keySet().iterator();
-        while (iterator.hasNext()){
-            String name=iterator.next();
-            if(!name.equals(mes.getSender())){
-                //得到线程发送
-                ServiceThread thread = ServiceThreads.getThread(name);
-                if(thread==null){
-                    log.error("服务端线程是null"+name);
-                    return;
-                }
+        // 发送用户列表给所有在线用户
+        Map<String, ServiceThread> sstm = ServiceThreads.get();
+        synchronized (sstm) {
+            for (ServiceThread thread : sstm.values()) {
                 try {
                     ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
-                    oos.writeObject(mes);
+                    oos.writeObject(message);
                     oos.flush();
                 } catch (IOException e) {
-                    log.error("服务端发送群聊消息错误"+e);
-                    throw new RuntimeException(e);
+                    log.error("发送用户列表时发生错误: {}", e.getMessage());
                 }
             }
         }
+    }
+
+    private void PrivateMes() {
+    // 拿到接收者的线程，发送过去
+        String receiver = mes.getReceiver();
+        receiver=receiver.replace("(在线)","");
+        ServiceThread thread = ServiceThreads.getThread(receiver);
+
+        if (thread == null) {
+            md.addmes(mes);
+            log.error("未找到接收者 {} 的线程", receiver);
+            return;
+        }
 
 
 
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
+            oos.writeObject(mes);
+            oos.flush();
+        } catch (IOException e) {
+            log.error("服务端发送私聊时出现错误", e);
+            // throw new RuntimeException(e);
+        }
+}
 
+
+    private void SendAll(Message mes) {
+        //发消息给所有人，返回客户端,
+        //遍历数据库！
+        List<User> allUsers = ud.getAllUsers();
+
+        synchronized (allUsers){
+            for(User user : allUsers){
+                String name=user.getName();
+                mes.setReceiver(name);
+                if(!name.equals(mes.getSender())){
+                    //得到线程发送
+                    ServiceThread thread = ServiceThreads.getThread(name);
+                    if(thread==null){
+                        md.addmes(mes);
+                        //log.error("服务端线程是null"+name);
+                        continue;
+                    }
+                    try {
+                        ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
+                        oos.writeObject(mes);
+                        oos.flush();
+                    } catch (IOException e) {
+                        log.error("服务端发送群聊消息错误"+e);
+                        //throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
     }
 }

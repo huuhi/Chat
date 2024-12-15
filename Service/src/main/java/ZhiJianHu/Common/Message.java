@@ -3,8 +3,8 @@ package ZhiJianHu.Common;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+
+
 
 /**
  * @author 胡志坚
@@ -15,11 +15,21 @@ import java.time.LocalDateTime;
 @Data
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
+    private int id;
     private String sender;
     private String receiver;
     private String content;
     private MessageType messageType;
-    private LocalDateTime date;
+    private String date;
+    private byte[] data;
+    private String fileName;
+
+    public String getMessagetype() {
+        return messageType.name();
+    }
+    public MessageType getMessageType() {
+        return messageType;
+    }
 
 
 }

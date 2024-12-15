@@ -29,8 +29,19 @@ public class UserClientService {
     private static Socket socket;
     private static final int PORT=9898;
     private static LocalDateTime now = LocalDateTime.now();
+    private  MessageType mt = null;
+    private  Message mes;
+    public UserClientService(Message message,MessageType mt){
+        //根据消息类型发送消息
+        this.mes=message;
+        this.mt=mt;
+    }
 
-    public static boolean isLogin(String name,String password) {
+    public UserClientService() {
+
+    }
+
+    public static boolean isLogin(String name, String password) {
         boolean flag = false;
         u.setName(name);
         u.setPwd(password);
@@ -43,7 +54,7 @@ public class UserClientService {
             if(mes.getMessageType().equals(MessageType.MESSAGE_LOGIN_SUCCEED)){
                  ChatRoomUI chatRoomUI = new ChatRoomUI(name, socket);
                 chatRoomUI.setVisible(true);
-                ClientConnectServiceThread cl = new ClientConnectServiceThread(socket);
+                ClientConnectServiceThread cl = new ClientConnectServiceThread(socket,chatRoomUI);
                 cl.start();
                 ClientThreads.addClientConnectServiceThread(name,cl);
                 flag = true;
@@ -68,17 +79,6 @@ public class UserClientService {
             throw new RuntimeException(e);
         }
     }
-    public static void useradd(String name){
-        Message message = new Message();
-        message.setContent(name);
-        message.setMessageType(MessageType.MESSAGE_ADD_USER);
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.writeObject(message);
-            oos.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 
 }

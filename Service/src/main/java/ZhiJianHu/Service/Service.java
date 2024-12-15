@@ -11,6 +11,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author 胡志坚
@@ -30,14 +32,12 @@ public class Service{
        try {
         ss=new ServerSocket(PORT);
         while (true) {
-
-
                 socket=ss.accept();
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
                 User users = (User)ois.readObject();
-            String name = users.getName();
-            Message ms=new Message();
+                String name = users.getName();
+                Message ms=new Message();
                 User user = ud.login(users.getName(), users.getPwd());
                 if(user!=null){
                     //登录成功，写成功的消息给客户端
@@ -54,15 +54,39 @@ public class Service{
             }
         }catch (Exception e) {
                 log.error("服务器出现错误"+e);
-                throw new RuntimeException(e);
+                System.exit(1);
+            }
+        }
+         private List<UserServiceListener> listeners = new ArrayList<>();
+
+        public void addUserServiceListener(UserServiceListener listener) {
+            listeners.add(listener);
+        }
+
+        public void removeUserServiceListener(UserServiceListener listener) {
+            listeners.remove(listener);
+        }
+
+        // 当用户上线时调用
+        public void onUserConnected(String username) {
+            // 处理用户上线逻辑...
+            for (UserServiceListener listener : listeners) {
+                listener.onUserConnected(username);
+            }
+        }
+
+        // 当用户下线时调用
+        public void onUserDisconnected(String username) {
+            // 处理用户下线逻辑...
+            for (UserServiceListener listener : listeners) {
+                listener.onUserDisconnected(username);
             }
         }
 
 
-
-
-    public static void main(String[] args) {
-
-    }
+        public interface UserServiceListener{
+            void onUserConnected(String username);
+            void onUserDisconnected(String username);
+        }
 
 }

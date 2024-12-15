@@ -15,4 +15,7 @@ public class ClientThreads {
     public static void addClientConnectServiceThread(String name,ClientConnectServiceThread ccst){
         mp.put(name,ccst);
     }
+    public static void remove(String name){
+        mp.remove(name);
+    }
 }

@@ -1,0 +1,34 @@
+<configuration>
+<!--  定义日志文件的存储路径  -->
+<property name="LOG_PATH" value="E:/jcode/JavaLogs"/>
+<property name="LOG_FILE_NAME" value="application"/>
+<!--  控制台输出  -->
+<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+<encoder>
+<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+</encoder>
+</appender>
+<!--  文件输出  -->
+<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+<encoder>
+<pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+</encoder>
+<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+<!--  每天生成一个新的日志文件  -->
+<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+<!--  保留30天的日志文件  -->
+<maxHistory>30</maxHistory>
+</rollingPolicy>
+</appender>
+<!--  日志级别设置  -->
+<root level="error">
+<appender-ref ref="STDOUT"/>
+<appender-ref ref="FILE"/>
+</root>
+<!--  可以为特定的包或类设置不同的日志级别  -->
+<logger name="ZhiJianHu" level="debug" additivity="false">
+<appender-ref ref="STDOUT"/>
+<appender-ref ref="FILE"/>
+</logger>
+</configuration>

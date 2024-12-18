@@ -1,6 +1,7 @@
 package ZhiJianHu.Service;
 
 import ZhiJianHu.Common.Dao.Message_Dao;
+import ZhiJianHu.Common.Dao.UserDao;
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
+import ZhiJianHu.Common.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,7 @@ public class Leave_Mes extends Thread{
     private ArrayList<Message> messages;
     private ServiceThread thread;
     private boolean open;
+    private UserDao ud=new UserDao();
 
 
 
@@ -79,6 +82,8 @@ public class Leave_Mes extends Thread{
     private void privateMes(Message mes) {
         //私聊怎么处理？？？
         thread=ServiceThreads.getThread(name);
+        User u = ud.getSingleUser(mes.getSender());
+        mes.setUser(u);
         if(thread!=null){
             try {
                 md.removemes(mes.getId());
@@ -98,7 +103,8 @@ public class Leave_Mes extends Thread{
         //发送消息，获得接收者的线程
         //发送
         thread = ServiceThreads.getThread(name);
-
+        User u = ud.getSingleUser(mes.getSender());
+        mes.setUser(u);
         if(thread!=null){
             try {
                 md.removemes(mes.getId());

@@ -70,11 +70,13 @@ public class ServiceThread extends Thread{
                     case MESSAGE_PRIVATE_FILE -> SendPrivateFile();
                     case MESSAGE_EXIT_MES -> EXIT_MES();
                     case MESSAGE_OPEN_MES -> check();
+                    case MESSAGE_USER_DATA ->  sendUserData();
+                    default -> log.debug("错误消息类型{}",mes.getMessageType());
                 }
 
             }catch (EOFException e){
                 log.error("{}下线了",name);
-                throw new RuntimeException();
+                throw new RuntimeException(e);
             }
             catch (Exception e) {
                 log.info("{}下线",name);
@@ -83,6 +85,28 @@ public class ServiceThread extends Thread{
         }
         cleanup();
     }
+
+    private void sendUserData() {
+        Message message = new Message();
+        String sender = mes.getSender();
+        sender=sender.replace("(在线)","");
+
+        User u = ud.getSingleUser(sender);
+        message.setUser(u);
+        message.setSender(sender);
+        message.setMessageType(MessageType.MESSAGE_USER_DATA);
+        log.debug("用户消息{}",u);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(message);
+            oos.flush();
+        } catch (IOException e) {
+            log.error("服务端发送用户信息出现错误{}",e);
+            throw new RuntimeException(e);
+        }
+
+    }
+
     private void check(){
         //检查消息留言
         log.info("open设置成功");
@@ -132,6 +156,17 @@ public class ServiceThread extends Thread{
     private void SendPrivateFile() {
         String receiver = mes.getReceiver();
         ServiceThread thread = ServiceThreads.getThread(receiver);
+        String sender = mes.getSender();
+        User u1 = ud.getSingleUser(sender);
+        mes.setUser(u1);
+        ServiceThread thread1 = ServiceThreads.getThread(sender);
+        try {
+            ObjectOutputStream oos1 = new ObjectOutputStream(thread1.socket.getOutputStream());
+            oos1.writeObject(mes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         if(thread != null){
             try{
                 ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
@@ -153,7 +188,20 @@ public class ServiceThread extends Thread{
         log.info("进入发送文件方法");
             //循环给所有人发送
         List<User> users = ud.getAllUsers();
+
+        String sender = mes.getSender();
+        User u1 = ud.getSingleUser(sender);
+        mes.setUser(u1);
+        ServiceThread thread1 = ServiceThreads.getThread(sender);
+        try {
+            ObjectOutputStream oos1 = new ObjectOutputStream(thread1.socket.getOutputStream());
+            oos1.writeObject(mes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         for(User u:users){
+            User u2 = ud.getSingleUser(mes.getSender());
+            mes.setUser(u2);
             String name = u.getName();
             mes.setReceiver(u.getName());
             if(!name.equals(mes.getSender())){
@@ -234,6 +282,18 @@ public class ServiceThread extends Thread{
         String receiver = mes.getReceiver();
         receiver=receiver.replace("(在线)","");
         ServiceThread thread = ServiceThreads.getThread(receiver);
+        User u = ud.getSingleUser(mes.getSender());
+        mes.setUser(u);
+        String sender = mes.getSender();
+        User u1 = ud.getSingleUser(sender);
+        mes.setUser(u1);
+        ServiceThread thread1 = ServiceThreads.getThread(sender);
+        try {
+            ObjectOutputStream oos1 = new ObjectOutputStream(thread1.socket.getOutputStream());
+            oos1.writeObject(mes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         if (thread == null) {
             md.addmes(mes);
@@ -258,9 +318,23 @@ public class ServiceThread extends Thread{
         //发消息给所有人，返回客户端,
         //遍历数据库！
         List<User> allUsers = ud.getAllUsers();
+        //先给发送者发送消息！
+        String sender = mes.getSender();
+        User u1 = ud.getSingleUser(sender);
+        mes.setUser(u1);
+        ServiceThread thread1 = ServiceThreads.getThread(sender);
+        try {
+            ObjectOutputStream oos1 = new ObjectOutputStream(thread1.socket.getOutputStream());
+            oos1.writeObject(mes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
 
         synchronized (allUsers){
             for(User user : allUsers){
+                User u = ud.getSingleUser(sender);
+                mes.setUser(u);
                 String name=user.getName();
                 mes.setReceiver(name);
                 if(!name.equals(mes.getSender())){
@@ -272,6 +346,7 @@ public class ServiceThread extends Thread{
                         continue;
                     }
                     try {
+                        log.debug("消息是{}",mes);
                         ObjectOutputStream oos = new ObjectOutputStream(thread.socket.getOutputStream());
                         oos.writeObject(mes);
                         oos.flush();

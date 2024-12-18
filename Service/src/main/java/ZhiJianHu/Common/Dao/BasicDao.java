@@ -85,6 +85,20 @@ public class BasicDao<T> implements Serializable {
             Utils.closeCon(con);
         }
     }
+    //查找某个对象是否查找
+    public int queryisLive(String sql,Class<T> cla,Object... params){
+         Connection con = Utils.con();
+         QueryRunner qr = new QueryRunner();
+        try {
+            T query = qr.query(con, sql, new BeanHandler<>(cla), params);
+            if(query!=null){
+                return 1;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return 0;
+    }
 
 
 

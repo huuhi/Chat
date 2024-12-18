@@ -38,18 +38,24 @@ public class UserClientService {
     }
 
     public UserClientService() {
+        try {
+            socket=new Socket("192.168.175.126",PORT);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 
-    public static boolean isLogin(String name, String password) {
+    public  boolean isLogin(String name, String password) {
         boolean flag = false;
-        u.setName(name);
-        u.setPwd(password);
+        Message m=new Message();
+        m.setSender(name);
+        m.setContent(password);
+        m.setMessageType(MessageType.MESSAGE_LOGIN_MES);
         try {
-            socket=new Socket(InetAddress.getLocalHost(),PORT);
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.writeObject(u);
+            oos.writeObject(m);
             Message mes = (Message)ois.readObject();
             if(mes.getMessageType().equals(MessageType.MESSAGE_LOGIN_SUCCEED)){
                  ChatRoomUI chatRoomUI = new ChatRoomUI(name, socket);
@@ -78,6 +84,25 @@ public class UserClientService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+    public  boolean register(User u){
+        Message message = new Message();
+        message.setSender(u.getName());
+        message.setUser(u);
+        message.setMessageType(MessageType.MESSAGE_REGISTER);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            oos.writeObject(message);
+            oos.flush();
+            Message o = (Message)ois.readObject();
+            return o.getMessageType().equals(MessageType.MESSAGE_REGISTER_SUCCEED);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
 

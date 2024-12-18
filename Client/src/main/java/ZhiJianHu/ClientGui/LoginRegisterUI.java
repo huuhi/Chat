@@ -1,9 +1,8 @@
 package ZhiJianHu.ClientGui;
 
-import ZhiJianHu.Client.ClientConnectServiceThread;
 import ZhiJianHu.Client.UserClientService;
+
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.UserDao;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -21,7 +20,7 @@ public class LoginRegisterUI extends JFrame {
     private JTextField nameField; // 用户名输入框
     private JPasswordField passwordField; // 密码输入框
     private JButton loginButton, registerButton; // 登录和注册按钮
-    private UserDao userDao=new UserDao();
+
     private  Socket socket;
     private UserClientService ucs;
 
@@ -95,7 +94,7 @@ public class LoginRegisterUI extends JFrame {
         //需要发送消息给服务端，然后验证是否正确
 
         //一旦有人登录成功就请求用户列表
-        if(UserClientService.isLogin(name,password)){
+        if(new UserClientService().isLogin(name,password)){
             //JOptionPane.showMessageDialog(this, "登录成功!"); // 示例提示
             dispose(); // 关闭当前窗口
             UserClientService.getUser();
@@ -130,7 +129,7 @@ class RegisterDialog extends JDialog {
     private BufferedImage avatarImage; // 保存选择的头像
     private ImageIcon icon;
     String  image=null;
-    private UserDao userDao=new UserDao();
+
     private JPanel registerPanel;
 
 public RegisterDialog(Frame owner, boolean modal) {
@@ -172,6 +171,8 @@ public RegisterDialog(Frame owner, boolean modal) {
         if (!selectedImagePath.isEmpty()) {
             this.image = selectedImagePath; // 更新类级别的image变量
             repaint();
+        }else{
+            this.image = "/孙.jpg";
         }
     });
     gbc.gridx = 1;
@@ -290,13 +291,14 @@ public RegisterDialog(Frame owner, boolean modal) {
 
         // 确定完成添加到数据库
         User user = new User(name, password, sex, age, hobbies, image);
-        int register = userDao.register(user);
-        if (register == 1) {
+        boolean reg =new UserClientService().register(user);
+        if (reg) {
             //UserClientService.getUser();
-            JOptionPane.showMessageDialog(this, "注册成功!");
-            dispose(); // 关闭对话框
+                JOptionPane.showMessageDialog(this, "注册成功!");
+                dispose(); // 关闭对话框
+
         } else {
-            JOptionPane.showMessageDialog(this, "注册失败!");
+            JOptionPane.showMessageDialog(this, "注册失败!名字重复");
         }
 
     });
@@ -313,6 +315,8 @@ public RegisterDialog(Frame owner, boolean modal) {
     // 设置窗口背景颜色
     getContentPane().setBackground(Color.decode("#F5F5F5"));
 }
+//应发送注册请求给服务端，服务端判断
+
 
 
 // 选择头像的方法

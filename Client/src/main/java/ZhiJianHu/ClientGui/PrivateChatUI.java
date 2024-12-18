@@ -1,9 +1,9 @@
 package ZhiJianHu.ClientGui;
 
+
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.UserDao;
 import ZhiJianHu.Dao.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,6 @@ public class PrivateChatUI extends JFrame implements KeyListener {
     private static String myNickname; // 我的昵称
     private String otherNickname; // 对方的昵称
     private Socket socket;
-    private static UserDao ud=new UserDao();
 
     public PrivateChatUI(Socket socket,String myNickname, String otherNickname) {
         log.info(myNickname+"与"+otherNickname);
@@ -145,7 +144,6 @@ public class PrivateChatUI extends JFrame implements KeyListener {
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(mes);
             oos.flush();
-            updateMes(mes);
         } catch (IOException e) {
             log.error("发送文件出现错误"+e);
             throw new RuntimeException(e);
@@ -155,10 +153,13 @@ public class PrivateChatUI extends JFrame implements KeyListener {
 
 
 
+
     public static void updateMes(Message mes) {
         //更新信息
         if (mes != null) {
-            User user = ud.getUser(mes.getSender());
+            //自己的窗口得不到自己的图片！
+            //还是需要服务器发送！
+            User user = mes.getUser();
             String avatarPath = user.getImage(); // 获取头像路径
             String content = mes.getContent();
             String date = mes.getDate().toString();
@@ -263,7 +264,6 @@ public class PrivateChatUI extends JFrame implements KeyListener {
                 throw new RuntimeException(e);
             }
             messageField.setText("");
-            updateMes(mes);
         }else{
             log.info("信息为空或者线程寄了");
         }

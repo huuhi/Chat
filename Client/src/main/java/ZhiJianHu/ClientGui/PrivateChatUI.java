@@ -155,6 +155,7 @@ public class PrivateChatUI extends JFrame implements KeyListener {
 
 
 
+
     public static void updateMes(Message mes) {
         //更新信息
         if (mes != null) {

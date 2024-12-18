@@ -21,7 +21,8 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class ChatRoomUI extends JFrame implements KeyListener {
@@ -36,6 +37,21 @@ public class ChatRoomUI extends JFrame implements KeyListener {
     private static String username;
     private static UserDao ud = new UserDao();
     private static ChatRoomUI instance;
+    private Map<String, PrivateChatUI> chatWindows = new HashMap<>();
+
+    public void openPrivateChat(String myNickname, String otherNickname, Socket socket) {
+        if (chatWindows.containsKey(otherNickname)) {
+            // 如果已经存在私聊窗口，直接显示
+            PrivateChatUI existingWindow = chatWindows.get(otherNickname);
+            existingWindow.toFront();
+            existingWindow.requestFocus();
+        } else {
+            // 否则创建新的私聊窗口
+            PrivateChatUI newWindow = new PrivateChatUI(socket, myNickname, otherNickname);
+            newWindow.setVisible(true);
+            chatWindows.put(otherNickname, newWindow);
+        }
+    }
 
     public ChatRoomUI() {}
 
@@ -447,4 +463,6 @@ class UserListMouseListener extends MouseAdapter {
             System.exit(1);
         }
     }
+    //注册
+
 }

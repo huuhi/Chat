@@ -31,10 +31,5 @@ public class UserDao extends BasicDao<User> implements Serializable {
         String sql="select * from user;";
         return query(sql,User.class);
     }
-    //根据名字查找用户
-    public int getUserByUsername(String name){
-        String sql="select * from user where name=?;";
-        return update(sql,name);
-    }
 
 }

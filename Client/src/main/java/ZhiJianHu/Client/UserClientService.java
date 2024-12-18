@@ -38,24 +38,18 @@ public class UserClientService {
     }
 
     public UserClientService() {
-        try {
-            socket=new Socket(InetAddress.getLocalHost(),PORT);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
     }
 
     public static boolean isLogin(String name, String password) {
         boolean flag = false;
-        Message m=new Message();
-        m.setSender(name);
-        m.setContent(password);
-        m.setMessageType(MessageType.MESSAGE_LOGIN_MES);
+        u.setName(name);
+        u.setPwd(password);
         try {
+            socket=new Socket(InetAddress.getLocalHost(),PORT);
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.writeObject(m);
+            oos.writeObject(u);
             Message mes = (Message)ois.readObject();
             if(mes.getMessageType().equals(MessageType.MESSAGE_LOGIN_SUCCEED)){
                  ChatRoomUI chatRoomUI = new ChatRoomUI(name, socket);
@@ -84,24 +78,6 @@ public class UserClientService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-    public  boolean register(User u){
-        Message message = new Message();
-        message.setSender(u.getName());
-        message.setMessageType(MessageType.MESSAGE_REGISTER);
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-            oos.writeObject(message);
-            oos.flush();
-            Message o = (Message)ois.readObject();
-            return o.getMessageType().equals(MessageType.MESSAGE_REGISTER_SUCCEED);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
 

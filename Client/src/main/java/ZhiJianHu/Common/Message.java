@@ -23,6 +23,7 @@ public class Message implements Serializable {
     private String date;
     private byte[] data;
     private String fileName;
+    private User user;
 
 
     public Message() {}

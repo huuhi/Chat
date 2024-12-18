@@ -2,6 +2,7 @@ package ZhiJianHu.Client;
 
 import ZhiJianHu.ClientGui.ChatRoomUI;
 import ZhiJianHu.ClientGui.PrivateChatUI;
+import ZhiJianHu.ClientGui.UserInfoUI;
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 import org.slf4j.Logger;
@@ -46,6 +47,7 @@ public class ClientConnectServiceThread extends Thread{
                             case MESSAGE_SEND_FILE -> ChatRoomUI.update(mes);
                             case MESSAGE_PRIVATE_FILE -> PrivateChatUI.updateMes(mes);
                             case MESSAGE_EXIT_MES -> exit();
+                            case MESSAGE_USER_DATA -> new UserInfoUI(mes.getSender(),mes.getUser()).setVisible(true);
                         }
                     } catch (EOFException e) {
                         log.error("连接已关闭: " + e.getMessage(), e);

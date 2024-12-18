@@ -1,10 +1,11 @@
 package ZhiJianHu.ClientGui;
 
+
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.UserDao;
 import ZhiJianHu.Dao.Utils;
+import com.alibaba.druid.support.logging.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,6 @@ public class ChatRoomUI extends JFrame implements KeyListener {
     static DefaultListModel<String> userListModel; // 用户列表模型
     private Socket socket;
     private static String username;
-    private static UserDao ud = new UserDao();
     private static ChatRoomUI instance;
     private Map<String, PrivateChatUI> chatWindows = new HashMap<>();
 
@@ -215,7 +215,6 @@ public class ChatRoomUI extends JFrame implements KeyListener {
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             oos.writeObject(mes);
             oos.flush();
-            update(mes);
         } catch (IOException e) {
             log.error("发送文件出现错误"+e);
             throw new RuntimeException(e);
@@ -233,6 +232,7 @@ public class ChatRoomUI extends JFrame implements KeyListener {
         }
         Message mes = new Message();
         mes.setSender(username);
+        //难度需要向服务端请求？？？
         mes.setReceiver("allpeople");
         mes.setMessageType(MessageType.MESSAGE_ALL_MES);
         mes.setContent(message);
@@ -249,7 +249,6 @@ public class ChatRoomUI extends JFrame implements KeyListener {
             throw new RuntimeException(e);
         }
         // 这里需要读服务端发送的消息
-        update(mes);
         messageField.setText("");
     }
 
@@ -259,41 +258,57 @@ public class ChatRoomUI extends JFrame implements KeyListener {
                 log.debug("消息类型为{}",mes.getMessageType());
                 return;
             }
-            User user = ud.getUser(mes.getSender());
-            String avatarPath;
-            if(user==null){
-                avatarPath="C:\\Users\\windows\\Pictures\\Saved Pictures\\孙.jpg";
-            }else{
-                avatarPath = user.getImage(); // 获取头像路径
+                   User user = mes.getUser();
+        String avatarPath;
 
-            }
-            String content = mes.getContent();
-            String date = mes.getDate();
-            String sender = mes.getSender();
-
-            // 构建HTML内容
-            StringBuilder htmlContent = new StringBuilder();
-            htmlContent.append("<div style='display: flex; align-items: flex-end;'>");
-            htmlContent.append("<span style='font-size:10px;'>").append(date).append("</span><br>");
-            boolean isMyMessage = sender.equals(username);
-
-            if (isMyMessage) {
-                htmlContent.append("<div style='margin-left: auto; background-color: #DCF8C6; padding: 10px; border-radius: 10px;'>");
+        // 先验证一下路径是否存在
+        if (user == null || user.getImage() == null) {
+            avatarPath = "/孙.jpg";
+        } else {
+            String image = user.getImage();
+            File imageFile = new File(image);
+            if (imageFile.exists()) {
+                avatarPath = image; // 获取头像路径
             } else {
-                htmlContent.append("<div style='background-color: #FFFFFF; padding: 10px; border-radius: 10px;'>");
+                avatarPath = "/孙.jpg";
             }
+        }
 
-            if (avatarPath != null && !avatarPath.isEmpty()) {
-                File imageFile = new File(avatarPath);
-                if (imageFile.exists()) {
-                    htmlContent.append("<img src='file:").append(imageFile.getAbsolutePath().replace("\\", "/")).append("' width='30' height='30' style='margin-right: 10px;'>");
+        log.debug("图片路径{}", avatarPath);
+        String content = mes.getContent();
+        String date = mes.getDate();
+        String sender = mes.getSender();
+
+        // 构建HTML内容
+        StringBuilder htmlContent = new StringBuilder();
+        htmlContent.append("<div style='display: flex; align-items: flex-end;'>");
+        htmlContent.append("<span style='font-size:10px;'>").append(date).append("</span><br>");
+        boolean isMyMessage = sender.equals(username);
+
+        if (isMyMessage) {
+            htmlContent.append("<div style='margin-left: auto; background-color: #DCF8C6; padding: 10px; border-radius: 10px;'>");
+        } else {
+            htmlContent.append("<div style='background-color: #FFFFFF; padding: 10px; border-radius: 10px;'>");
+        }
+
+        if (avatarPath != null && !avatarPath.isEmpty()) {
+            File imageFile = new File(avatarPath);
+            if (imageFile.exists()) {
+                htmlContent.append("<img src='file:").append(imageFile.getAbsolutePath().replace("\\", "/")).append("' width='30' height='30' style='margin-right: 10px;'>");
+            } else {
+                // 使用类路径资源
+                URL resourceUrl = ChatRoomUI.class.getResource(avatarPath);
+                if (resourceUrl != null) {
+                    htmlContent.append("<img src='").append(resourceUrl.toExternalForm()).append("' width='30' height='30' style='margin-right: 10px;'>");
                 } else {
                     htmlContent.append("[图片不存在] ");
                     log.warn("图片文件不存在: " + avatarPath);
                 }
-            } else {
-                htmlContent.append("[无头像] ");
             }
+        } else {
+            htmlContent.append("[无头像] ");
+        }
+
 
             if (mes.getMessageType() == MessageType.MESSAGE_SEND_FILE) {
                 String fileName = mes.getFileName()!=null?mes.getFileName():"未知文件";
@@ -408,13 +423,14 @@ public class ChatRoomUI extends JFrame implements KeyListener {
 // 用户列表鼠标监听器类
 class UserListMouseListener extends MouseAdapter {
     private static final Logger log =LoggerFactory.getLogger(UserListMouseListener.class);
-    private final ChatRoomUI chatRoomUI;
+    private ChatRoomUI chatRoomUI;
     private final String username;
     private Socket socket;
 
     public UserListMouseListener(ChatRoomUI chatRoomUI, String username) {
         this.chatRoomUI = chatRoomUI;
         this.username = username;
+        socket = chatRoomUI.getSocket();
     }
 
     @Override
@@ -422,9 +438,8 @@ class UserListMouseListener extends MouseAdapter {
         if (evt.getClickCount() == 2) { // 双击事件
             int index = chatRoomUI.userList.locationToIndex(evt.getPoint());
             String selectedUser = chatRoomUI.userListModel.get(index);
-            if (!selectedUser.equals(username)) {
-                showUserOptions(selectedUser);
-            }
+            showUserOptions(selectedUser);
+
         }
     }
 
@@ -442,14 +457,32 @@ class UserListMouseListener extends MouseAdapter {
         );
 
         if (choice == 0) {
-            new UserInfoUI(selectedUser).setVisible(true);
+            userData(selectedUser);
+            //发送请求给服务端，返回用户信息
+
         } else if (choice == 1) {
-            socket = chatRoomUI.getSocket();
             new PrivateChatUI(socket,username, selectedUser).setVisible(true);
             openprivateChatRoom();
             //这里发送消息告诉服务器客户端打开私聊，检查留言！
         }
     }
+
+    private void userData(String selectedUser) {
+        Message msg =new Message();
+        msg.setSender(selectedUser);
+        msg.setMessageType(MessageType.MESSAGE_USER_DATA);
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.writeObject(msg);
+            oos.flush();
+            log.info("发送用户信息请求成功{}",msg);
+        } catch (IOException e) {
+            log.error("请求用户信息失败");
+            System.exit(1);
+        }
+
+    }
+
     private void openprivateChatRoom(){
         try {
             Message message = new Message();

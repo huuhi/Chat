@@ -1,5 +1,5 @@
+import ZhiJianHu.Common.Dao.UserDao;
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.UserDao;
 import ZhiJianHu.Dao.Utils;
 import org.junit.Test;
 

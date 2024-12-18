@@ -17,35 +17,7 @@ import java.util.Properties;
  */
 public class Utils implements Serializable {
     private static final long serialVersionUID = 1L;
-    private static DataSource dataSource;
-    static{
-        Properties p=new Properties();
-        try {
-            p.load(new FileInputStream(Resource.class.getResource("/druid.properties").getFile()));
-            dataSource= DruidDataSourceFactory.createDataSource(p);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
-
-    public static Connection con(){
-        try {
-            return dataSource.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    //关闭
-    public static void closeCon(Connection con){
-        if(con!=null){
-            try {
-                con.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     public static byte[] StreamToByte(InputStream is) throws IOException {
             ByteArrayOutputStream out = new ByteArrayOutputStream();

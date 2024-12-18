@@ -290,19 +290,13 @@ public RegisterDialog(Frame owner, boolean modal) {
 
         // 确定完成添加到数据库
         User user = new User(name, password, sex, age, hobbies, image);
-        boolean reg =new UserClientService().register(user);
-        if (reg) {
+        int register = userDao.register(user);
+        if (register == 1) {
             //UserClientService.getUser();
-            int register = userDao.register(user);
-            if(register>0){
-                JOptionPane.showMessageDialog(this, "注册成功!");
-                dispose(); // 关闭对话框
-            }else{
-                JOptionPane.showMessageDialog(this, "注册失败!");
-            }
-
+            JOptionPane.showMessageDialog(this, "注册成功!");
+            dispose(); // 关闭对话框
         } else {
-            JOptionPane.showMessageDialog(this, "注册失败!名字重复");
+            JOptionPane.showMessageDialog(this, "注册失败!");
         }
 
     });
@@ -319,8 +313,6 @@ public RegisterDialog(Frame owner, boolean modal) {
     // 设置窗口背景颜色
     getContentPane().setBackground(Color.decode("#F5F5F5"));
 }
-//应发送注册请求给服务端，服务端判断
-
 
 
 // 选择头像的方法

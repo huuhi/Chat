@@ -1,7 +1,6 @@
 package ZhiJianHu.ClientGui;
 
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.UserDao;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,12 +12,12 @@ public class UserInfoUI extends JFrame {
     private JLabel ageLabel;
     private JLabel genderLabel;
     private JLabel hobbiesLabel;
-    private UserDao ud=new UserDao();
 
-    public UserInfoUI(String username) {
+
+    public UserInfoUI(String username,User user) {
         username=username.replace("(在线)","");
         //通过名字获得用户信息
-        User user = ud.getUser(username);
+        //应该发消息给服务端，返回
         setTitle("用户信息 - " + username);
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

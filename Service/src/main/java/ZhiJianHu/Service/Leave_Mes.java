@@ -109,7 +109,7 @@ public class Leave_Mes extends Thread{
             try {
                 md.removemes(mes.getId());
                ObjectOutputStream oos=new ObjectOutputStream(thread.socket.getOutputStream());
-                log.debug("消息是这样的{}",mes);
+                //log.debug("消息是这样的{}",mes);
                 oos.writeObject(mes);
                 oos.flush();
             } catch (IOException e) {

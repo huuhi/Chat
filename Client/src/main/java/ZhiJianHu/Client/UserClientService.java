@@ -39,8 +39,7 @@ public class UserClientService {
 
     public UserClientService() {
         try {
-            socket=new Socket("192.168.175.126",PORT);
-        } catch (IOException e) {
+            socket=new Socket("10.103.31.1",PORT);} catch (IOException e) {
 
             throw new RuntimeException(e);
         }

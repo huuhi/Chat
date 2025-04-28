@@ -1,6 +1,6 @@
 import ZhiJianHu.Common.Dao.UserDao;
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.Utils;
+import ZhiJianHu.Utils.Utils;
 import org.junit.Test;
 
 import java.sql.Connection;

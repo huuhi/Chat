@@ -4,7 +4,7 @@ package ZhiJianHu.ClientGui;
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.Utils;
+import ZhiJianHu.Utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

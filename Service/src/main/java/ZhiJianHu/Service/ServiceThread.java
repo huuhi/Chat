@@ -1,7 +1,7 @@
 package ZhiJianHu.Service;
 
-import ZhiJianHu.Common.Dao.Message_Dao;
-import ZhiJianHu.Common.Dao.UserDao;
+import ZhiJianHu.Dao.Message_Dao;
+import ZhiJianHu.Dao.UserDao;
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 import ZhiJianHu.Common.User;
@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +70,7 @@ public class ServiceThread extends Thread{
                     case MESSAGE_EXIT_MES -> EXIT_MES();
                     case MESSAGE_OPEN_MES -> check();
                     case MESSAGE_USER_DATA ->  sendUserData();
+                    case CREATE_GROUP-> createGroup();
                     default -> log.debug("错误消息类型{}",mes.getMessageType());
                 }
 
@@ -80,10 +80,16 @@ public class ServiceThread extends Thread{
             }
             catch (Exception e) {
                 log.info("{}下线",name);
-                throw new RuntimeException();
             }
         }
         cleanup();
+    }
+//处理创造群聊
+    private void createGroup() {
+        //怎么创造群聊？ 怎么让用户加入群聊？
+        //先不做，先做私聊功能
+        log.info("创建群聊");
+
     }
 
     private void sendUserData() {

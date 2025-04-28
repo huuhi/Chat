@@ -39,7 +39,7 @@ public class UserClientService {
 
     public UserClientService() {
         try {
-            socket=new Socket("10.103.31.1",PORT);} catch (IOException e) {
+            socket=new Socket(InetAddress.getByName("127.0.0.1"),PORT);} catch (IOException e) {
 
             throw new RuntimeException(e);
         }
@@ -60,7 +60,7 @@ public class UserClientService {
             if(mes.getMessageType().equals(MessageType.MESSAGE_LOGIN_SUCCEED)){
                  ChatRoomUI chatRoomUI = new ChatRoomUI(name, socket);
                 chatRoomUI.setVisible(true);
-                ClientConnectServiceThread cl = new ClientConnectServiceThread(socket,chatRoomUI);
+                ClientConnectServiceThread cl = new ClientConnectServiceThread(socket,chatRoomUI,name);
                 cl.start();
                 ClientThreads.addClientConnectServiceThread(name,cl);
                 flag = true;

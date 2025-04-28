@@ -4,8 +4,7 @@ package ZhiJianHu.ClientGui;
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 import ZhiJianHu.Common.User;
-import ZhiJianHu.Dao.Utils;
-import com.alibaba.druid.support.logging.Resources;
+import ZhiJianHu.Utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,6 @@ public class ChatRoomUI extends JFrame implements KeyListener {
         JScrollPane scrollPane = new JScrollPane(messageArea);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
-        // 在构造函数中添加以下代码
 
 
         messageArea.addHyperlinkListener(new HyperlinkListener() {
@@ -122,6 +120,9 @@ public class ChatRoomUI extends JFrame implements KeyListener {
         // 创建发送按钮
         sendButton = createButton("发送", Color.decode("#007AFF"), event -> sendMessage(username));
 
+//        创造群聊按钮
+        JButton createGroupButton = createButton("创建群聊", Color.decode("#007AFF"), event -> showCreateGroupDialog());
+
         // 创建用户列表
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
@@ -152,10 +153,13 @@ public class ChatRoomUI extends JFrame implements KeyListener {
         inputPanel.add(sendButton, BorderLayout.EAST);
 
 
+
         // 将组件添加到窗口
         add(scrollPane, BorderLayout.CENTER);
         add(inputPanel, BorderLayout.SOUTH);
         add(userScrollPane, BorderLayout.EAST); // 将用户列表添加到右侧
+       // 将创建群聊按钮添加到顶部
+         add(createGroupButton, BorderLayout.NORTH);
 
         // 设置窗口背景颜色
         getContentPane().setBackground(Color.decode("#F5F5F5"));
@@ -371,17 +375,6 @@ public class ChatRoomUI extends JFrame implements KeyListener {
         }
         return instance;
     }
-
-
-
-
-
-
-
-
-
-
-
     // 获取用户信息的线程
    public static void get(Message message) {
        SwingUtilities.invokeLater(() -> {
@@ -392,6 +385,137 @@ public class ChatRoomUI extends JFrame implements KeyListener {
            }
        });
    }
+
+       private void showCreateGroupDialog() {
+        // 创建对话框
+        JDialog dialog = new JDialog(this, "创建群聊", true);
+        dialog.setSize(400, 250);
+        dialog.setLocationRelativeTo(this);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        // 使用 GridBagLayout 布局管理器
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // 群聊名称标签和文本字段
+        JLabel nameLabel = new JLabel("群聊名称:");
+        nameLabel.setFont(new Font("KaiTi", Font.BOLD, 14));
+        JTextField nameField = new JTextField();
+        nameField.setFont(new Font("KaiTi", Font.PLAIN, 14));
+        nameField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.decode("#CCCCCC"), 2),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        panel.add(nameLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add(nameField, gbc);
+
+        // 群聊描述标签和文本区域
+        JLabel descLabel = new JLabel("群聊描述:");
+        descLabel.setFont(new Font("KaiTi", Font.BOLD, 14));
+        JTextArea descArea = new JTextArea();
+        descArea.setFont(new Font("KaiTi", Font.PLAIN, 14));
+        descArea.setLineWrap(true);
+        descArea.setWrapStyleWord(true);
+        JScrollPane descScrollPane = new JScrollPane(descArea);
+        descScrollPane.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.decode("#CCCCCC"), 2),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        panel.add(descLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        panel.add(descScrollPane, gbc);
+
+        // 创建按钮和取消按钮
+        JButton createButton = new JButton("创建");
+        createButton.setFont(new Font("KaiTi", Font.BOLD, 14));
+        createButton.setBackground(Color.decode("#007AFF"));
+        createButton.setForeground(Color.WHITE);
+        createButton.setFocusPainted(false);
+        createButton.setBorderPainted(false);
+        createButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        JButton cancelButton = new JButton("取消");
+        cancelButton.setFont(new Font("KaiTi", Font.BOLD, 14));
+        cancelButton.setBackground(Color.decode("#FF3B30"));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFocusPainted(false);
+        cancelButton.setBorderPainted(false);
+        cancelButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(createButton);
+        buttonPanel.add(cancelButton);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0.0;
+        gbc.weighty = 0.0;
+        panel.add(buttonPanel, gbc);
+
+        // 添加面板到对话框
+
+
+        // 按钮事件监听器
+        createButton.addActionListener(e -> {
+            String groupName = nameField.getText();
+            String groupDesc = descArea.getText();
+            log.info(groupName);
+            log.info(groupDesc);
+
+
+            if (groupName.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "群聊名称不能为空", "错误", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 发送创建群聊的请求到服务器
+            Message mes = new Message();
+            mes.setMessageType(MessageType.CREATE_GROUP);
+            mes.setSender(username);
+            mes.setGroupName(groupName);
+            mes.setContent(groupDesc);
+            try {
+               ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+               oos.writeObject(mes);
+               oos.flush();
+               dialog.dispose();
+               JOptionPane.showMessageDialog(dialog,"创造群聊成功！","通知",JOptionPane.CANCEL_OPTION);
+            } catch (IOException ex) {
+                log.error("发送创建群聊请求失败: {}", ex.getMessage(), ex);
+                JOptionPane.showMessageDialog(dialog, "发送创建群聊请求失败", "错误", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        dialog.add(panel);
+        dialog.setVisible(true);
+    }
+
 
 
     // 添加用户的方法

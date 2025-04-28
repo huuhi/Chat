@@ -24,6 +24,7 @@ public class Message implements Serializable {
     private byte[] data;
     private String fileName;
     private User user;
+    private String GroupName;
 
 
     public Message() {}

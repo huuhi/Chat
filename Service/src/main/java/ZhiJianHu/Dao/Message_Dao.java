@@ -1,4 +1,4 @@
-package ZhiJianHu.Common.Dao;
+package ZhiJianHu.Dao;
 
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;

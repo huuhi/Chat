@@ -1,13 +1,6 @@
-package ZhiJianHu.Dao;
+package ZhiJianHu.Utils;
 
-import com.alibaba.druid.pool.DruidDataSourceFactory;
-
-import javax.annotation.Resource;
-import javax.sql.DataSource;
 import java.io.*;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Properties;
 
 /**
  * @author 胡志坚

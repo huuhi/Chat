@@ -24,9 +24,11 @@ public class ClientConnectServiceThread extends Thread{
     private Message mes;
     private static boolean exit=false;
     private ChatRoomUI chatRoomUI;
-    public ClientConnectServiceThread(Socket s,ChatRoomUI chatRoomUI){
+    private String name;
+    public ClientConnectServiceThread(Socket s,ChatRoomUI chatRoomUI,String name){
         this.socket=s;
         this.chatRoomUI=chatRoomUI;
+        this.name=name;
     }
 
     @Override
@@ -81,6 +83,7 @@ public class ClientConnectServiceThread extends Thread{
 
         private void exit(){
             exit=true;
+            ClientThreads.remove(name);
             try {
                 socket.close();
             } catch (IOException e) {

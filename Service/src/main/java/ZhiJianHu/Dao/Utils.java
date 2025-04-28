@@ -1,4 +1,4 @@
-package ZhiJianHu.Common.Dao;
+package ZhiJianHu.Dao;
 
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 

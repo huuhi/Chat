@@ -1,7 +1,7 @@
 package ZhiJianHu.Service;
 
-import ZhiJianHu.Common.Dao.Message_Dao;
-import ZhiJianHu.Common.Dao.UserDao;
+import ZhiJianHu.Dao.Message_Dao;
+import ZhiJianHu.Dao.UserDao;
 import ZhiJianHu.Common.Message;
 import ZhiJianHu.Common.MessageType;
 
@@ -59,7 +59,7 @@ public class Leave_Mes extends Thread{
                     privateMes(mes);
                 }
                 try {
-                    Thread.sleep(700);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     log.error("睡觉出现异常！");
                     System.exit(1);
